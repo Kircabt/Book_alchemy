@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Library</title>
+    <style>
+      body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+      .book { display: flex; gap: 1rem; align-items: center; margin-bottom: 1.5rem; }
+      .book img { width: 90px; height: 135px; object-fit: cover; background: #eee; }
+      .book h3 { margin: 0 0 .25rem; }
+      .book p { margin: 0; color: #555; }
+    </style>
+  </head>
+  <body>
+
+    <h1>Library</h1>
+    <p><a href="/add_author">Add Author</a> | <a href="/add_book">Add Book</a></p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <p class="{{ category }}">{{ message }}</p>
+      {% endfor %}
+    {% endwith %}
+
+    <form action="/" method="GET" class="search-form">
+      <input type="text" name="q" value="{{ search }}" placeholder="Search title or author" aria-label="Search books">
+      <input type="hidden" name="sort" value="{{ sort }}">
+      <input type="hidden" name="order" value="{{ order }}">
+      <input type="submit" value="Search">
+      {% if search %}<a href="/?sort={{ sort }}&order={{ order }}">Clear</a>{% endif %}
+    </form>
+
+    <form action="/" method="GET" class="sort-form">
+      <input type="hidden" name="q" value="{{ search }}">
+      <label for="sort">Sort by:</label>
+      <select id="sort" name="sort" onchange="this.form.submit()">
+        <option value="title" {% if sort == 'title' %}selected{% endif %}>Title</option>
+        <option value="author" {% if sort == 'author' %}selected{% endif %}>Author name</option>
+        <option value="year" {% if sort == 'year' %}selected{% endif %}>Publication year</option>
+      </select>
+      <select name="order" aria-label="Order" onchange="this.form.submit()">
+        <option value="asc" {% if order == 'asc' %}selected{% endif %}>A → Z / oldest first</option>
+        <option value="desc" {% if order == 'desc' %}selected{% endif %}>Z → A / newest first</option>
+      </select>
+      <noscript><input type="submit" value="Sort"></noscript>
+    </form>
+
+    {% for book in books %}
+    <div class="book">
+      <img src="https://covers.openlibrary.org/b/isbn/{{ book.isbn }}-M.jpg"
+           alt="Cover of {{ book.title }}">
+      <div>
+        <h3>{{ book.title }}</h3>
+        <p>by {{ book.author.name }}</p>
+        <form action="/book/{{ book.id }}/delete" method="POST"
+              onsubmit="return confirm('Delete &quot;{{ book.title|e }}&quot;?');">
+          <input type="submit" value="Delete Book">
+        </form>
+      </div>
+    </div>
+    {% else %}
+      {% if search %}
+      <p>No books match "{{ search }}".</p>
+      {% else %}
+      <p>No books yet.</p>
+      {% endif %}
+    {% endfor %}
+
+  </body>
+</html>
